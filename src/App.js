@@ -29,6 +29,11 @@ const SpinningMesh = ({ position, args, color, speed }) => {
     );
 };
 
+/**
+ * Add a scene function to group up all items in the scene and put it in the app return function
+ * this scene function contains the camera that can do the prallax rotation and is usually the last 
+ * feature to be added after all items have been built
+ */
 function Scene() {
   const group = useRef();
   const rotationEuler = new THREE.Euler(0, 0, 0);
