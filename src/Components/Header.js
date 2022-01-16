@@ -9,7 +9,7 @@ function Header() {
                     React JS
                 </Logo>
                 <Label>
-                    Ep 1
+                    Mr Joozy
                 </Label>
             </Wrap>
         </Container>

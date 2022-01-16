@@ -1,7 +1,8 @@
 import logo from './logo.svg';
 import './App.scss';
+import * as THREE from 'three'
 import React, { useRef, useState } from 'react';
-import { Canvas , useFrame } from 'react-three-fiber';
+import { Canvas , useFrame, useThree } from 'react-three-fiber';
 import { softShadows, MeshWobbleMaterial, OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { useSpring, a } from '@react-spring/three'
 import Header from './Components/Header';
@@ -28,62 +29,41 @@ const SpinningMesh = ({ position, args, color, speed }) => {
     );
 };
 
-const Camera = () => {
-  const cam = useRef(null)
-  // cursor information
-  const cursor = {}
-  cursor.x = 0
-  cursor.y = 0
+function Scene() {
+  const group = useRef();
+  const rotationEuler = new THREE.Euler(0, 0, 0);
+  const rotationQuaternion = new THREE.Quaternion(0, 0, 0, 0);
+  const { viewport } = useThree();
 
-  useFrame(() => {
-    window.addEventListener('mousemove', (event) => {
-      cursor.x = event.clientX / window.innerWidth - 0.5
-      cursor.y = event.clientY / window.innerHeight - 0.5
-  
-      let parallaxX = cursor.x * 0.5
-      let parallaxY = cursor.y * 0.5
-  
-      let position = []
-      position[0] = -5 + (parallaxX - Camera.position.x) * 5
-      position[1] = 2 + (parallaxY - Camera.position.y) * 5
-      position[2] = 10
-      console.log(position)
-    })
-  })
-  
-  return (
-    <a.PerspectiveCamera>
+  useFrame(({ mouse }) => {
+    const x = (mouse.x * viewport.width) / 100;
+    const y = (mouse.y * viewport.height) / 100;
 
-    </a.PerspectiveCamera>
-  )
+    rotationEuler.set(y, x, 0);
+    rotationQuaternion.setFromEuler(rotationEuler);
+
+    group.current.quaternion.slerp(rotationQuaternion, 0.1);
+  });
+
+  return <group ref={group}>
+    <mesh receiveShadow rotation={[-Math.PI / 2, 0,0]} position={[0,-3,0]}>
+          <planeBufferGeometry attach="geometry" args={[100,100]} />
+          <shadowMaterial attach="material" opacity={0.3}/>
+    </mesh>
+
+        <SpinningMesh position={[0,1,0]} args={[3,2,1]} color="lightblue" speed={2}/>
+        <SpinningMesh position={[-2,1,-5]} color="pink" speed={6}/>
+        <SpinningMesh position={[5,1,-2]} color="pink" speed={6}/>
+  </group>;
 }
 
 function App() {
 
-  // cursor information
-  const cursor = {}
-  cursor.x = 0
-  cursor.y = 0
-
-  window.addEventListener('mousemove', (event) => {
-    cursor.x = event.clientX / window.innerWidth - 0.5
-    cursor.y = event.clientY / window.innerHeight - 0.5
-
-    let parallaxX = cursor.x * 0.5
-    let parallaxY = cursor.y * 0.5
-
-    let position = []
-    position[0] = -5 + (parallaxX - Camera.position.x) * 5
-    position[1] = 2 + (parallaxY - Camera.position.y) * 5
-    position[2] = 10
-    console.log(position)
-  })
-  
-  
   return (
     <>
     <Header />
       <Canvas shadows colorManagement camera={{position: [-5,2,10], fov: 60}}>
+      {/* camera={{position: [-5,2,10], fov: 60}} */}
       <ambientLight intensity={0.5} />
       <directionalLight 
         castShadow
@@ -101,14 +81,7 @@ function App() {
       <pointLight position={[0,-10,0]} intensity={1.5}/>
 
       <group>
-        <mesh receiveShadow rotation={[-Math.PI / 2, 0,0]} position={[0,-3,0]}>
-          <planeBufferGeometry attach="geometry" args={[100,100]} />
-          <shadowMaterial attach="material" opacity={0.3}/>
-        </mesh>
-
-        <SpinningMesh position={[0,1,0]} args={[3,2,1]} color="lightblue" speed={2}/>
-        <SpinningMesh position={[-2,1,-5]} color="pink" speed={6}/>
-        <SpinningMesh position={[5,1,-2]} color="pink" speed={6}/>
+        <Scene />
       </group>
       
       {/* <OrbitControls/> */}
